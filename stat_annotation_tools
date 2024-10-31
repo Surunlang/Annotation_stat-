@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# 显示帮助信息
+function display_help() {
+    echo "用法: $0 <子命令> [选项]"
+    echo
+    echo "子命令:"
+    echo "  modify_id       生成 ann_venn.list 和 num 文件"
+    echo "  draw_venn       使用 ann_venn.list 和 num 绘制 Venn 图"
+    echo
+    echo "使用 $0 <子命令> --help 获取每个子命令的详细说明"
+    exit 1
+}
+
+# 检查是否有输入子命令
+if [ $# -lt 1 ]; then
+    display_help
+fi
+
+# 获取子命令
+subcommand=$1
+shift
+
+# 根据子命令执行对应模块
+case "$subcommand" in
+    modify_id)
+        # 运行 modify_id 模块
+        python3 modify_id.py "$@"
+        ;;
+    
+    draw_venn)
+        # 检查是否有 ann_venn.list 和 num 参数
+        if [ ! -f "ann_venn.list" ]; then
+            echo "错误: ann_venn.list 文件未生成。请先运行 modify_id 子命令。"
+            exit 1
+        fi
+        
+        # 运行 draw_venn 模块
+        if [ $# -ne 2 ]; then
+            echo "用法: $0 draw_venn <num> <output_prefix>"
+            exit 1
+        fi
+        num=$1
+        output_prefix=$2
+        Rscript draw_annVenn.R ann_venn.list "$num" "$output_prefix"
+        ;;
+    
+    *)
+        echo "未知子命令: $subcommand"
+        display_help
+        ;;
+esac
+
